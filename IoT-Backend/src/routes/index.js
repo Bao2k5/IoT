@@ -1,0 +1,44 @@
+// src/routes/index.js
+const express = require("express");
+const router = express.Router();
+
+const authRoutes = require("./auth.routes");
+const userRoutes = require("./user.routes");
+const productRoutes = require("./product.routes");
+const collectionRoutes = require("./collection.routes");
+const promoRoutes = require("./promo.routes");
+const cartRoutes = require("./cart.routes");
+const orderRoutes = require("./order.routes");
+const adminRoutes = require('./admin.routes');
+const uploadRoutes = require('./upload.routes');
+const partnerRoutes = require('./partner.routes');
+const heroBannerRoutes = require('./heroBanner.routes');
+const addressRoutes = require('./address.routes');
+const couponRoutes = require('./coupon.routes');
+const vietqrRoutes = require('./vietqr.routes');
+const sepayRoutes = require('./sepay.routes');
+const wishlistRoutes = require('./wishlist.routes');
+const reviewRoutes = require('./review.routes');
+
+router.use("/auth", authRoutes);
+router.use("/users", userRoutes);
+router.use("/products", productRoutes);
+router.use("/collections", collectionRoutes);
+router.use("/promos", promoRoutes);
+router.use("/cart", cartRoutes);
+router.use("/orders", orderRoutes);
+router.use('/admin', adminRoutes);
+router.use('/upload', uploadRoutes);
+router.use('/partners', partnerRoutes);
+router.use('/hero-banners', heroBannerRoutes);
+router.use('/address', addressRoutes);
+router.use('/coupons', couponRoutes);
+router.use('/payment/vietqr', vietqrRoutes);
+router.use('/payment/sepay', sepayRoutes);
+router.use('/wishlist', wishlistRoutes);
+router.use('/reviews', reviewRoutes);
+router.use('/views', reviewRoutes); // Alias for Frontend component expectations
+router.use('/contact', require('./contact.routes'));
+router.use('/security', require('./security.routes'));
+
+module.exports = router;

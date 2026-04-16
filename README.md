@@ -19,34 +19,60 @@
 ---
 
 ## 🚀 Giới thiệu Dự án
-Dự án **Smart Preservation Vault** kết hợp hoàn hảo giữa công nghệ **IoT (Internet of Things)** và **Edge AI** để tạo ra một không gian bảo quản an ninh đa lớp. Khác với các két sắt truyền thống thụ động, tủ hướng tới việc "Phòng vệ Chủ động" và điều hòa môi trường một cách tự động.
+Dự án **Smart Preservation Vault** kết hợp hoàn hảo giữa công nghệ **IoT (Internet of Things)**, **Cloud Computing** và **Edge AI** để tạo ra một không gian bảo quản an ninh đa lớp. Khác với các két sắt truyền thống thụ động, tủ hướng tới việc "Phòng vệ Chủ động" và điều hòa môi trường một cách tự động.
 
 ### 🌟 Tính năng nổi bật
-*   **🛡️ An ninh Sinh trắc học (FaceID):** Mở cửa từ xa hoặc thông qua FaceID Edge AI (InsightFace + YOLOv11) quét khuôn mặt siêu nhạy < 1.5s mà không chạm.
-*   **🚨 Chống trộm Tức thì (Zero-Latency):** Báo động chuông ngay lập tức (< 0.5s) khi phát hiện chấn động (SW-420) hoặc cạy cửa (Reed Switch).
-*   **🌡️ Điều hòa Khí hậu AIoT:** Tự động kích hoạt khối bán dẫn Sò lạnh Peltier và quạt tản nhiệt thông qua Rơ-le khi phát hiện nhiệt độ môi trường vượt mức thiết lập an toàn.
-*   **📱 Giám sát Đám mây (Blynk):** Nhận cảnh báo theo thời gian thực (Push Notification) và theo dõi biểu đồ nhiệt độ ở bất kỳ đâu trên ứng dụng di động.
+*   **🛡️ An ninh Sinh trắc học (FaceID):** Mở cửa thông qua FaceID Edge AI nhận diện 512-chiều siêu chuẩn, chống mở sai.
+*   **🚨 Chống trộm Tức thì (Zero-Latency):** Kiến trúc Multi-threading xử lý bật còi báo động ngay lập tức (< 0.5s) khi phát hiện chấn động (SW-420) hoặc cạy cửa (Reed Switch).
+*   **🌡️ Điều hòa Khí hậu AIoT:** Tự động giám sát nhiệt/ẩm (DHT11) và bật/tắt khối tản nhiệt Sò lạnh Peltier thông qua Relay.
+*   **📱 Giám sát Đám mây:** Kết hợp Server Web Socket và Blynk IoT để theo dõi, nhận Push Notification liên tục 24/7.
 
 ---
 
-## 📂 Cấu trúc Mã nguồn (Source Code)
-Mã nguồn ứng dụng nằm trong thư mục `IoT-Firmware`, chia làm 3 cụm logic chính:
+## 📂 Cấu trúc Mã nguồn (Source Code) Toàn Diện
+Mã nguồn ứng dụng được chia làm Trạm vật lý (Firmware), Trạm biên (Edge AI) và Đám mây (Cloud Backend):
 
 ```
-📁 IoT-Firmware/
-├── 📁 ESP32CAM_Stream/
-│   └── ESP32CAM_Stream.ino      # (C++) Đọc PIR, Chụp khung hình Camera gởi Server FaceID qua giao thức HTTP
-├── 📁 Smart_Jewelry_IoT/
-│   └── Smart_Jewelry_IoT.ino    # (C++) Trạm Node trung tâm xài FreeRTOS quản lý: Peltier, Khóa, Blynk, Cân bằng Rung/Nhiệt
-└── AI_Face.py                   # (Python) Khối Edge AI phục vụ kiểm duyệt, API chặn cửa nếu sai người
+📁 IoT/ (root)
+├── 📁 IoT-Firmware/
+│   ├── 📁 ESP32CAM_Stream/
+│   │   └── ESP32CAM_Stream.ino      # (C++) Đọc PIR, chụp và gởi ảnh lên Server FaceID (HTTP POST)
+│   ├── 📁 Smart_Jewelry_IoT/
+│   │   └── Smart_Jewelry_IoT.ino    # (C++) MCU Trung tâm (ESP32): Xử lý FreeRTOS quản lý Peltier, Khóa, Blynk, Cân bằng Rung/Nhiệt
+│   └── AI_Face.py                   # (Python) Khối Edge AI phục vụ kiểm duyệt khuôn mặt (InsightFace + YOLOv11)
+├── 📁 IoT-Backend/
+│   └── 📁 src/                      # (Node.js) Web Socket Server & REST API
+│       ├── 📁 models/               # Schema kết nối Cơ sở dữ liệu MongoDB Atlas (Security, TempLogs...)
+│       ├── 📁 controllers/          # Nhận dữ liệu Telemetry từ ESP32 và đẩy lên Web/Dashboard
+│       └── ...
+└── README.md
 ```
 
-## 🛠️ Công nghệ Kỹ thuật áp dụng
-*   **Vi điều khiển chính:** MCU ESP32-WROOM-32 & ESP32-CAM.
-*   **Cơ cấu vận hành chịu tải (12V):** Khóa Solenoid điện từ, Sò Nóng lạnh TEC1-12706, DC Fan.
-*   **Hệ điều hành nhúng:** FreeRTOS (Luồng Đa nhiệm), Non-blocking `millis()`.
-*   **Kết nối vô tuyến:** WiFiManager (Captive Portal cấp WiFI tại chỗ).
-*   **Giao thức Backend:** Mạng HTTP/REST API, TCP (Blynk Cloud).
+---
+
+## 🛠️ Trọn bộ Công nghệ Kỹ thuật (Tech Stack) Sử Dụng Trong Dự Án
+
+### 💻 1. Vi điều khiển & Hệ điều hành Nhúng (Embedded Systems)
+*   **Nền tảng MCU:** `ESP32-WROOM-32` (Lõi xử lý chính) & `ESP32-CAM` (Mắt thần Camera).
+*   **Ngôn ngữ Lập trình:** `C/C++` (Biên dịch trực tiếp ra mã máy giúp độ trễ cực thấp).
+*   **Multi-threading:** Ứng dụng hệ điều hành thời gian thực `FreeRTOS` để chia luồng (Core 0 cho WiFi, Core 1 cho điều khiển IO).
+*   **Smart Time-Delay:** Kỹ thuật Non-blocking sử dụng hàm `millis()` để tránh treo vi xử lý khi đọc cảm biến liên tục.
+
+### 🔌 2. Linh kiện Điện tử & Cơ cấu Chấp hành (Hardware & Actuators)
+*   **Bảo mật:** Khóa điện từ Solenoid 12V siêu tốc, Cảm biến từ tính Reed Switch, Cảm biến Rung SW-420, Cảm biến PIR HC-SR501.
+*   **Làm mát không gian kín:** Sò nóng lạnh bán dẫn `Peltier TEC1-12706` kết hợp mạng lưới Quạt `DC Fan`.
+*   **Kiểm soát:** Mạch Relay cách ly quang, Mạch hạ áp `LM2596` (nắn dòng 12V xuống 5V an toàn), Màn hình `LCD I2C` hiển thị tại chỗ.
+
+### 🌐 3. Mạng IoT & Cloud Server (Internet of Things & Cloud)
+*   **Cấp mạng thông minh:** `WiFiManager` (Tạo Captive Portal cắm-là-chạy, không cần hardcode SSID).
+*   **IoT Dashboard:** `Blynk IoT Cloud` (Vẽ biểu đồ nhiệt độ, điều khiển các chốt Relay từ xa qua Remote App).
+*   **Web Server Middleware:** Xây dựng Backend nội bộ chuẩn `Node.js` (Lưu trữ lịch sử truy cập, tối ưu ping dưới 100ms thay vì AWS).
+*   **Cơ sở Dữ liệu Đám mây:** `MongoDB Atlas` (NoSQL) lưu trữ Log mở cửa và Dữ liệu Cảnh báo (Telemetry Data) siêu tốc, không bị mất khi cúp điện.
+
+### 🧠 4. Trí Tuệ Nhân Tạo Biên (Edge AI Computervision)
+*   **Ngôn ngữ AI:** `Python`.
+*   **Phát hiện hiện diện (Object Detection):** Mạng nơ-ron `YOLOv11` phối hợp thuật toán `ByteTrack` để tạo Virtual Fence siêu chính xác.
+*   **Nhận diện khuôn mặt (Face Recognition):** Mô hình `InsightFace` sử dụng hàm `ArcFace Loss` tối ưu hóa khoảng cách không gian đa chiều (Vector 512-D), đem lại độ chính xác chạm mức 99.8%.
 
 ---
 *Cảm ơn Thầy đã dành thời gian xem và đánh giá Đồ án của nhóm chúng em!*
